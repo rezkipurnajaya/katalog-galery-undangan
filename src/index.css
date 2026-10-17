@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: "Playfair Display", Georgia, serif;
+    --font-display: "Cinzel", "Playfair Display", serif;
+    --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #faf8f5;
+    color: #1c1917;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Custom scrollbar for horizontal pills & tables */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f0e8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6cbbe;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #bfae9c;
+}
+
+/* Subtle gold shimmer effect for special accents */
+.gold-shimmer {
+  background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #b8860b 100%);
+}
+
+.gold-border {
+  border-color: rgba(212, 175, 55, 0.35);
+}
