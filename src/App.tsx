@@ -385,49 +385,50 @@ export default function App() {
         )}
       </main>
 
-      {/* 5. Mobile-First Bottom Navigation Bar (Visible only on mobile devices) */}
+      {/* 5. Mobile Floating Action Dock at Bottom-Left (Icons only, no text) */}
       <nav
-        aria-label="Navigasi Mobile Cepat"
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-lg px-2 py-1 pb-safe flex items-center justify-around"
+        aria-label="Navigasi Cepat"
+        className="md:hidden fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-3.5 z-40 bg-white/95 backdrop-blur-md border border-stone-300/90 shadow-xl rounded-full p-1 flex items-center gap-1"
       >
-        {/* Button 1: Katalog / Home */}
+        {/* Button 1: Katalog */}
         <button
           type="button"
           onClick={() => {
             handleResetFilters();
             handleScrollToTop();
           }}
-          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-amber-800 hover:bg-amber-50 active:scale-95 transition-all touch-manipulation cursor-pointer"
+          title="Katalog"
+          aria-label="Katalog"
         >
-          <LayoutGrid className="w-5 h-5 text-amber-700" />
-          <span className="text-[10px] font-semibold">Katalog</span>
+          <LayoutGrid className="w-4 h-4 text-amber-700" />
         </button>
 
         {/* Button 2: Cari */}
         <button
           type="button"
           onClick={handleScrollToSearch}
-          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-stone-600 hover:bg-stone-100 active:scale-95 transition-all touch-manipulation cursor-pointer"
+          title="Cari"
+          aria-label="Cari"
         >
-          <Search className="w-5 h-5 text-stone-500" />
-          <span className="text-[10px] font-semibold">Cari</span>
+          <Search className="w-4 h-4 text-stone-600" />
         </button>
 
-        {/* Button 3: Filter Lanjutan */}
+        {/* Button 3: Filter */}
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer relative"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-stone-600 hover:bg-stone-100 active:scale-95 transition-all touch-manipulation cursor-pointer relative"
+          title="Filter Lanjutan"
+          aria-label="Filter Lanjutan"
         >
-          <div className="relative">
-            <SlidersHorizontal className="w-5 h-5 text-stone-500" />
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-amber-600 text-white text-[9px] font-bold flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-semibold">Filter</span>
+          <SlidersHorizontal className="w-4 h-4 text-stone-600" />
+          {activeFilterCount > 0 && (
+            <span className="absolute 0 top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-amber-600 text-white text-[8px] font-bold flex items-center justify-center shadow-xs">
+              {activeFilterCount}
+            </span>
+          )}
         </button>
 
         {/* Button 4: Favorit */}
@@ -437,31 +438,32 @@ export default function App() {
             setShowFavoritesOnly((prev) => !prev);
             handleScrollToTop();
           }}
-          className={`flex-1 py-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[46px] touch-manipulation cursor-pointer relative ${
-            showFavoritesOnly ? 'text-rose-600 font-bold' : 'text-stone-600'
+          className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-all touch-manipulation cursor-pointer relative ${
+            showFavoritesOnly
+              ? 'bg-rose-50 text-rose-600'
+              : 'text-stone-600 hover:bg-stone-100'
           }`}
+          title="Favorit"
+          aria-label="Favorit"
         >
-          <div className="relative">
-            <Heart className={`w-5 h-5 ${showFavoritesOnly ? 'fill-current text-rose-600' : 'text-rose-500'}`} />
-            {favorites.length > 0 && (
-              <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-bold min-w-[14px] text-center">
-                {favorites.length}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-semibold">Favorit</span>
+          <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current text-rose-600' : 'text-rose-500'}`} />
+          {favorites.length > 0 && (
+            <span className="absolute 0 top-0.5 right-0.5 px-1 py-0.2 rounded-full bg-rose-500 text-white text-[8px] font-bold min-w-[12px] text-center shadow-xs">
+              {favorites.length}
+            </span>
+          )}
         </button>
       </nav>
 
-      {/* Floating Scroll-to-Top Button */}
+      {/* Floating Scroll-to-Top Button (positioned at bottom-right) */}
       {showScrollTop && (
         <button
           type="button"
           onClick={handleScrollToTop}
-          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 w-11 h-11 rounded-full bg-stone-900/90 text-amber-300 shadow-xl border border-amber-500/30 flex items-center justify-center hover:bg-stone-900 transition-all cursor-pointer touch-manipulation"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-3.5 z-40 w-10 h-10 rounded-full bg-stone-900/90 text-amber-300 shadow-xl border border-amber-500/30 flex items-center justify-center hover:bg-stone-900 active:scale-95 transition-all cursor-pointer touch-manipulation"
           aria-label="Kembali ke atas"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-4 h-4" />
         </button>
       )}
 
@@ -504,8 +506,8 @@ export default function App() {
         </div>
       )}
 
-      {/* 10. Footer with safe mobile bottom clearance */}
-      <footer className="mt-auto bg-stone-900 text-stone-400 text-xs pt-8 pb-32 md:pb-8 border-t border-amber-900/30">
+      {/* 10. Footer */}
+      <footer className="mt-auto bg-stone-900 text-stone-400 text-xs pt-8 pb-24 md:pb-8 border-t border-amber-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-center md:text-left">
