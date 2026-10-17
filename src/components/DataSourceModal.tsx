@@ -74,7 +74,7 @@ function sinkronkanGambarDariFolderDrive() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity"
@@ -82,18 +82,23 @@ function sinkronkanGambarDariFolderDrive() {
         aria-hidden="true"
       />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-stone-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-2xl w-full border border-stone-200 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]">
+        {/* Mobile Drag Indicator Handle */}
+        <div className="pt-2.5 pb-1 sm:hidden flex justify-center bg-[#faf8f5]">
+          <div className="w-12 h-1.5 bg-stone-300 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="px-6 py-4 bg-[#faf8f5] border-b border-stone-200 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-100 text-emerald-800 rounded-lg">
+        <div className="px-4 sm:px-6 py-3.5 bg-[#faf8f5] border-b border-stone-200 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 bg-emerald-100 text-emerald-800 rounded-lg shrink-0">
               <Database className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="font-serif text-base font-bold text-stone-900">
-                Integrasi Spreadsheet & Gambar Google Drive
+            <div className="min-w-0">
+              <h3 className="font-serif text-sm sm:text-base font-bold text-stone-900 truncate">
+                Integrasi Spreadsheet & Gambar Drive
               </h3>
-              <p className="text-xs text-stone-500">
+              <p className="text-[11px] text-stone-500 truncate">
                 Koneksi data real-time UD REZ WAN JAYA
               </p>
             </div>
@@ -101,14 +106,15 @@ function sinkronkanGambarDariFolderDrive() {
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100"
+            className="min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 cursor-pointer touch-manipulation"
+            aria-label="Tutup dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-200 bg-stone-50 px-6 gap-4 text-xs font-semibold">
+        <div className="flex border-b border-stone-200 bg-stone-50 px-4 sm:px-6 gap-3 sm:gap-4 text-xs font-semibold overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('drive_guide')}
@@ -317,20 +323,20 @@ function sinkronkanGambarDariFolderDrive() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3 pb-safe">
           <button
             type="button"
             onClick={onTestSync}
             disabled={isSyncing}
-            className="px-3 py-1.5 rounded-lg border border-stone-300 text-stone-700 font-semibold hover:bg-stone-100 flex items-center gap-1.5 transition-colors disabled:opacity-60 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl border border-stone-300 text-stone-700 font-semibold hover:bg-stone-100 flex items-center gap-2 transition-colors disabled:opacity-60 cursor-pointer min-h-[44px] touch-manipulation text-xs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-amber-600' : ''}`} />
             <span>Uji &amp; Sinkron Ulang</span>
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold transition-colors cursor-pointer min-h-[44px] touch-manipulation text-xs"
           >
             Tutup
           </button>

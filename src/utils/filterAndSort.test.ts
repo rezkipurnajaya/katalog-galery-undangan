@@ -169,12 +169,15 @@ test('calculateStats aggregates totals and category counters accurately', () => 
 });
 
 test('generateWhatsAppLink produces safe inquiry without numerical price', () => {
-  const link = generateWhatsAppLink(mockItems[0], '6281234567890');
-  assert.ok(link.includes('wa.me/6281234567890'));
-  assert.ok(link.includes('BABY'));
-  assert.ok(link.includes('Premium'));
-  assert.ok(!link.includes('Rp'));
-  assert.ok(!link.includes('255000'));
+  const linkDefault = generateWhatsAppLink(mockItems[0]);
+  assert.ok(linkDefault.includes('wa.me/6285103580450'));
+  assert.ok(linkDefault.includes('BABY'));
+  assert.ok(linkDefault.includes('Premium'));
+  assert.ok(!linkDefault.includes('Rp'));
+  assert.ok(!linkDefault.includes('255000'));
+
+  const linkLocal = generateWhatsAppLink(mockItems[0], '085103580450');
+  assert.ok(linkLocal.includes('wa.me/6285103580450'));
 });
 
 test('getColorHex maps Indonesian color names to appropriate hex codes', () => {

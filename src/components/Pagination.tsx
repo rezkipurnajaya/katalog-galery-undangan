@@ -40,16 +40,16 @@ export const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-stone-200/80 text-xs text-stone-600">
+    <div className="py-5 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 border-t border-stone-200/80 text-xs text-stone-600 w-full">
       {/* Left Info & Page Size */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 w-full sm:w-auto text-center">
         <span>
-          Menampilkan <strong className="text-stone-900">{startItem}</strong> -{' '}
-          <strong className="text-stone-900">{endItem}</strong> dari{' '}
-          <strong className="text-stone-900">{totalItems}</strong> model
+          Menampilkan <strong className="text-stone-900 font-semibold">{startItem}</strong> -{' '}
+          <strong className="text-stone-900 font-semibold">{endItem}</strong> dari{' '}
+          <strong className="text-stone-900 font-semibold">{totalItems}</strong> model
         </span>
 
-        <div className="flex items-center gap-1.5 pl-3 border-l border-stone-200">
+        <div className="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-stone-200">
           <span className="text-[11px] text-stone-400">Tampilkan:</span>
           <select
             value={pageSize}
@@ -57,7 +57,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               onPageSizeChange(Number(e.target.value));
               onPageChange(1);
             }}
-            className="bg-white border border-stone-300 rounded px-2 py-1 text-xs font-semibold text-stone-700 cursor-pointer focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+            className="bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-stone-700 cursor-pointer focus:outline-hidden focus:ring-1 focus:ring-amber-500 min-h-[38px] touch-manipulation"
           >
             <option value={12}>12 / hal</option>
             <option value={24}>24 / hal</option>
@@ -66,13 +66,13 @@ export const Pagination: React.FC<PaginationProps> = ({
         </div>
       </div>
 
-      {/* Right Pagination Buttons */}
-      <div className="flex items-center gap-1">
+      {/* Right Pagination Buttons (>=40px touch targets) */}
+      <div className="flex items-center gap-1.5 justify-center">
         <button
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="min-w-[40px] min-h-[40px] rounded-xl border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer touch-manipulation"
           aria-label="Halaman Sebelumnya"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -83,7 +83,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             <button
               type="button"
               onClick={() => onPageChange(1)}
-              className="w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-700 font-semibold hover:bg-stone-50 transition-colors"
+              className="min-w-[40px] min-h-[40px] rounded-xl border border-stone-200 bg-white text-stone-700 font-semibold hover:bg-stone-50 transition-colors flex items-center justify-center cursor-pointer touch-manipulation"
             >
               1
             </button>
@@ -98,7 +98,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               key={p}
               type="button"
               onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`min-w-[40px] min-h-[40px] rounded-xl font-bold text-xs transition-colors flex items-center justify-center cursor-pointer touch-manipulation ${
                 isActive
                   ? 'bg-amber-600 text-white shadow-xs'
                   : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
@@ -115,7 +115,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             <button
               type="button"
               onClick={() => onPageChange(totalPages)}
-              className="w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-700 font-semibold hover:bg-stone-50 transition-colors"
+              className="min-w-[40px] min-h-[40px] rounded-xl border border-stone-200 bg-white text-stone-700 font-semibold hover:bg-stone-50 transition-colors flex items-center justify-center cursor-pointer touch-manipulation"
             >
               {totalPages}
             </button>
@@ -126,8 +126,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          aria-label="Halaman Berikutnya"
+          className="min-w-[40px] min-h-[40px] rounded-xl border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer touch-manipulation"
+          aria-label="Halaman Selanjutnya"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

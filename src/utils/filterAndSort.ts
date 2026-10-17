@@ -308,10 +308,26 @@ export function calculateStats(all: UndanganItem[], filtered: UndanganItem[]): C
 }
 
 /**
+ * Nomor WhatsApp resmi UD REZ WAN JAYA
+ */
+export const DEFAULT_WHATSAPP_NUMBER = '085103580450';
+
+/**
+ * Format nomor WhatsApp ke format internasional wa.me (misal 085103580450 -> 6285103580450)
+ */
+export function formatWhatsAppNumberForLink(phone: string): string {
+  let cleaned = phone.replace(/[^0-9]/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '62' + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
+/**
  * Generate WhatsApp inquiry URL with pre-filled message (strictly NO numerical price)
  */
-export function generateWhatsAppLink(item: UndanganItem, phone: string = '6281234567890'): string {
-  const cleanPhone = phone.replace(/[^0-9]/g, '');
+export function generateWhatsAppLink(item: UndanganItem, phone: string = DEFAULT_WHATSAPP_NUMBER): string {
+  const cleanPhone = formatWhatsAppNumberForLink(phone);
   const msg = `Halo UD REZ WAN JAYA,\nSaya tertarik dengan Blangko Undangan:\n- Seri: ${item.series}\n- Nomor Kode: ${item.nomorKode}\n- Segmen: ${item.segmenHarga}\n- Lipatan: ${item.lipatan}\n- Orientasi: ${item.orientasi}\n- Amplop: ${item.amplop}\n\nApakah model ini masih tersedia? Terima kasih!`;
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
 }

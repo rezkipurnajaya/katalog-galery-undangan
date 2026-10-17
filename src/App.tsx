@@ -1,5 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Sparkles, SlidersHorizontal, RefreshCw, AlertCircle, Heart, Check, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  Sparkles,
+  SlidersHorizontal,
+  RefreshCw,
+  Heart,
+  Check,
+  Search,
+  LayoutGrid,
+  ArrowUp,
+  Layers,
+} from 'lucide-react';
 import type { UndanganItem, FilterState, ViewMode, PriceSegment } from './types/catalog.ts';
 import { ALL_SERIES_KEY, filterItems, sortItems, calculateStats } from './utils/filterAndSort.ts';
 import { fetchLiveCatalog, APPS_SCRIPT_URL } from './services/catalogService.ts';
@@ -31,6 +41,7 @@ export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [selectedDetailItem, setSelectedDetailItem] = useState<UndanganItem | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
 
   // Script URL Configuration
   const [scriptUrl, setScriptUrl] = useState<string>(() => {
@@ -68,6 +79,19 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(24);
 
+  // Scroll listener for back to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Save favorites to localStorage
   const toggleFavorite = useCallback((id: string) => {
     setFavorites((prev) => {
@@ -99,30 +123,28 @@ export default function App() {
     }
 
     try {
-      const result = await fetchLiveCatalog(customUrl || scriptUrl);
+      const result = await fetchLiveCatalog(customUrl);
       setCatalogItems(result.items);
-      setSyncSource(result.source);
       setLastSyncedAt(result.lastSyncedAt);
+      setSyncSource(result.source);
 
       if (isManualRefresh) {
-        showToast(
-          `Data berhasil diperbarui dari Google Spreadsheet (${result.items.length} model).`
-        );
+        showToast(`Sinkronisasi berhasil! ${result.items.length} model blangko diperbarui.`);
       }
     } catch (err) {
-      console.error('Error fetching catalog:', err);
-      showToast('Gagal terhubung ke Google Spreadsheet, menggunakan data cache.');
+      console.error('Failed to load catalog data:', err);
+      showToast('Gagal memuat data terbaru, menggunakan data katalog lokal.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [scriptUrl, showToast]);
+  }, [showToast]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(scriptUrl);
+  }, [loadData, scriptUrl]);
 
-  // Handle custom Apps Script URL change
+  // Handle URL change
   const handleSaveScriptUrl = (newUrl: string) => {
     setScriptUrl(newUrl);
     try {
@@ -131,61 +153,64 @@ export default function App() {
       // Ignore
     }
     loadData(newUrl, true);
+    setIsSettingsOpen(false);
   };
 
-  // Dynamically extract unique series names from live dataset
+  // Base items consideration for favorites filter
+  const baseItems = useMemo(() => {
+    if (showFavoritesOnly) {
+      return catalogItems.filter((it) => favorites.includes(it.id));
+    }
+    return catalogItems;
+  }, [catalogItems, showFavoritesOnly, favorites]);
+
+  // Dynamic Series List
   const dynamicSeriesList = useMemo(() => {
-    const seriesSet = new Set<string>();
-    catalogItems.forEach((item) => {
-      if (item.series && item.series.trim()) {
-        seriesSet.add(item.series.trim().toUpperCase());
+    const set = new Set<string>();
+    catalogItems.forEach((it) => {
+      if (it.series && it.series.trim()) {
+        set.add(it.series.trim().toUpperCase());
       }
     });
-    return Array.from(seriesSet).sort();
+    return Array.from(set).sort();
   }, [catalogItems]);
 
-  // Filter items
-  const filteredItems = useMemo(() => {
-    let base = catalogItems;
-    if (showFavoritesOnly) {
-      base = base.filter((item) => favorites.includes(item.id));
-    }
-    return filterItems(base, filters);
-  }, [catalogItems, filters, showFavoritesOnly, favorites]);
-
-  // Sort filtered items
+  // Filtered & Sorted items
   const sortedAndFilteredItems = useMemo(() => {
-    return sortItems(filteredItems, filters.sortBy);
-  }, [filteredItems, filters.sortBy]);
+    const filtered = filterItems(baseItems, filters);
+    return sortItems(filtered, filters.sortBy);
+  }, [baseItems, filters]);
 
-  // Paginated items
-  const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return sortedAndFilteredItems.slice(startIndex, startIndex + pageSize);
-  }, [sortedAndFilteredItems, currentPage, pageSize]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, showFavoritesOnly]);
-
-  // Compute live statistics
+  // Dynamic Catalog Stats based on current baseItems
   const stats = useMemo(() => {
     return calculateStats(catalogItems, sortedAndFilteredItems);
   }, [catalogItems, sortedAndFilteredItems]);
 
-  // Count active filters in the drawer
+  // Paginated items
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedAndFilteredItems.slice(start, start + pageSize);
+  }, [sortedAndFilteredItems, currentPage, pageSize]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, showFavoritesOnly]);
+
+  // Active filter count
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.selectedSegments.length > 0) count += filters.selectedSegments.length;
-    if (filters.selectedColors.length > 0) count += filters.selectedColors.length;
-    if (filters.selectedLipatan.length > 0) count += filters.selectedLipatan.length;
-    if (filters.selectedOrientasi.length > 0) count += filters.selectedOrientasi.length;
-    if (filters.selectedAmplop.length > 0) count += filters.selectedAmplop.length;
+    if (filters.selectedSeries && filters.selectedSeries !== ALL_SERIES_KEY) count++;
+    count += filters.selectedSegments.length;
+    count += filters.selectedColors.length;
+    count += filters.selectedLipatan.length;
+    count += filters.selectedOrientasi.length;
+    count += filters.selectedAmplop.length;
+    if (filters.searchQuery.trim()) count++;
     return count;
   }, [filters]);
 
-  // Update filters handler
+  // Update filter partial
   const handleUpdateFilters = (partial: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...partial }));
   };
@@ -220,9 +245,22 @@ export default function App() {
     }
   };
 
+  // Scroll to search or top
+  const handleScrollToSearch = () => {
+    window.scrollTo({ top: 100, behavior: 'smooth' });
+    const input = document.querySelector<HTMLInputElement>("input[placeholder*='Cari seri']");
+    if (input) {
+      input.focus();
+    }
+  };
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8f5] text-stone-900 selection:bg-amber-200">
-      {/* 1. Header with Brand & Dynamic Segment Pills */}
+    <div className="min-h-screen flex flex-col bg-[#faf8f5] text-stone-900 selection:bg-amber-200 w-full overflow-x-hidden">
+      {/* 1. Header with Brand & Dynamic Segment Carousel */}
       <Header
         stats={stats}
         selectedSegments={filters.selectedSegments}
@@ -259,8 +297,8 @@ export default function App() {
         totalCount={catalogItems.length}
       />
 
-      {/* 4. Main Product Catalog Section */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
+      {/* 4. Main Product Catalog Section with safe mobile bottom spacing */}
+      <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-5 w-full pb-24 sm:pb-16 md:pb-12">
         {isLoading ? (
           /* Loading Skeleton */
           <div className="py-20 flex flex-col items-center justify-center text-center">
@@ -274,7 +312,7 @@ export default function App() {
           </div>
         ) : sortedAndFilteredItems.length === 0 ? (
           /* Empty Search / Filter State */
-          <div className="py-16 px-4 bg-white rounded-2xl border border-stone-200 text-center max-w-md mx-auto my-8 shadow-xs">
+          <div className="py-12 sm:py-16 px-4 bg-white rounded-2xl border border-stone-200 text-center max-w-md mx-auto my-6 sm:my-8 shadow-xs">
             <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
               <SlidersHorizontal className="w-6 h-6" />
             </div>
@@ -287,7 +325,7 @@ export default function App() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              className="mt-4 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer min-h-[44px] touch-manipulation"
             >
               Reset Semua Filter & Pencarian
             </button>
@@ -295,9 +333,9 @@ export default function App() {
         ) : (
           /* Products View by Selected Mode */
           <div>
-            {/* Mode 1: Grid 4-Kolom Standar */}
+            {/* Mode 1: Grid 4-Kolom Standar (1 col mobile, 2 col tablet, 3-4 col desktop) */}
             {viewMode === 'grid4' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
                 {paginatedItems.map((item) => (
                   <ProductCardGrid4
                     key={item.id}
@@ -310,9 +348,9 @@ export default function App() {
               </div>
             )}
 
-            {/* Mode 2: Grid 6-Kolom Ringkas */}
+            {/* Mode 2: Grid 6-Kolom Ringkas (2 col mobile, 3-4 col tablet, 6 col desktop) */}
             {viewMode === 'grid6' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
                 {paginatedItems.map((item) => (
                   <ProductCardGrid6
                     key={item.id}
@@ -325,7 +363,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Mode 3: Mode Tabel / List */}
+            {/* Mode 3: Mode Tabel / List (Responsive cards on mobile, table on desktop) */}
             {viewMode === 'table' && (
               <ProductTableView
                 items={paginatedItems}
@@ -347,7 +385,87 @@ export default function App() {
         )}
       </main>
 
-      {/* 5. Collapsible Advanced Filter Drawer */}
+      {/* 5. Mobile-First Bottom Navigation Bar (Visible only on mobile devices) */}
+      <nav
+        aria-label="Navigasi Mobile Cepat"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-lg px-2 py-1 pb-safe flex items-center justify-around"
+      >
+        {/* Button 1: Katalog / Home */}
+        <button
+          type="button"
+          onClick={() => {
+            handleResetFilters();
+            handleScrollToTop();
+          }}
+          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer"
+        >
+          <LayoutGrid className="w-5 h-5 text-amber-700" />
+          <span className="text-[10px] font-semibold">Katalog</span>
+        </button>
+
+        {/* Button 2: Cari */}
+        <button
+          type="button"
+          onClick={handleScrollToSearch}
+          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer"
+        >
+          <Search className="w-5 h-5 text-stone-500" />
+          <span className="text-[10px] font-semibold">Cari</span>
+        </button>
+
+        {/* Button 3: Filter Lanjutan */}
+        <button
+          type="button"
+          onClick={() => setIsDrawerOpen(true)}
+          className="flex-1 py-1 flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-amber-800 transition-colors min-h-[46px] touch-manipulation cursor-pointer relative"
+        >
+          <div className="relative">
+            <SlidersHorizontal className="w-5 h-5 text-stone-500" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-amber-600 text-white text-[9px] font-bold flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-semibold">Filter</span>
+        </button>
+
+        {/* Button 4: Favorit */}
+        <button
+          type="button"
+          onClick={() => {
+            setShowFavoritesOnly((prev) => !prev);
+            handleScrollToTop();
+          }}
+          className={`flex-1 py-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[46px] touch-manipulation cursor-pointer relative ${
+            showFavoritesOnly ? 'text-rose-600 font-bold' : 'text-stone-600'
+          }`}
+        >
+          <div className="relative">
+            <Heart className={`w-5 h-5 ${showFavoritesOnly ? 'fill-current text-rose-600' : 'text-rose-500'}`} />
+            {favorites.length > 0 && (
+              <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-bold min-w-[14px] text-center">
+                {favorites.length}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-semibold">Favorit</span>
+        </button>
+      </nav>
+
+      {/* Floating Scroll-to-Top Button */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={handleScrollToTop}
+          className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 w-11 h-11 rounded-full bg-stone-900/90 text-amber-300 shadow-xl border border-amber-500/30 flex items-center justify-center hover:bg-stone-900 transition-all cursor-pointer touch-manipulation"
+          aria-label="Kembali ke atas"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* 6. Collapsible Advanced Filter Drawer */}
       <AdvancedFilterDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
@@ -357,7 +475,7 @@ export default function App() {
         stats={stats}
       />
 
-      {/* 6. Product Detail Modal Dialog */}
+      {/* 7. Product Detail Modal Dialog */}
       <ProductDetailModal
         item={selectedDetailItem}
         onClose={() => setSelectedDetailItem(null)}
@@ -365,7 +483,7 @@ export default function App() {
         onToggleFavorite={toggleFavorite}
       />
 
-      {/* 7. Data Source & Settings Modal */}
+      {/* 8. Data Source & Settings Modal */}
       <DataSourceModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -378,16 +496,16 @@ export default function App() {
         totalRecords={catalogItems.length}
       />
 
-      {/* 8. Toast Notification */}
+      {/* 9. Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-stone-900 text-amber-200 px-4 py-3 rounded-xl shadow-2xl border border-amber-500/40 text-xs flex items-center gap-2.5 max-w-sm animate-bounce-short">
+        <div className="fixed bottom-20 md:bottom-5 right-4 md:right-5 z-50 bg-stone-900 text-amber-200 px-4 py-3 rounded-xl shadow-2xl border border-amber-500/40 text-xs flex items-center gap-2.5 max-w-sm">
           <Check className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-medium text-white">{toastMessage}</span>
         </div>
       )}
 
-      {/* 9. Footer */}
-      <footer className="mt-auto bg-stone-900 text-stone-400 text-xs py-8 border-t border-amber-900/30">
+      {/* 10. Footer with safe mobile bottom clearance */}
+      <footer className="mt-auto bg-stone-900 text-stone-400 text-xs pt-8 pb-32 md:pb-8 border-t border-amber-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-center md:text-left">

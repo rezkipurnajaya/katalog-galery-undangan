@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, RotateCcw, Check, SlidersHorizontal } from 'lucide-react';
+import { X, SlidersHorizontal, Check, RotateCcw } from 'lucide-react';
 import type { FilterState, PriceSegment, CatalogStats } from '../types/catalog.ts';
 
 interface AdvancedFilterDrawerProps {
@@ -11,7 +11,7 @@ interface AdvancedFilterDrawerProps {
   stats: CatalogStats;
 }
 
-const AVAILABLE_COLORS: Array<{ name: string; hex: string; border?: boolean }> = [
+const AVAILABLE_COLORS = [
   { name: 'Putih', hex: '#ffffff', border: true },
   { name: 'Krem', hex: '#f5ede0', border: true },
   { name: 'Kuning / Emas', hex: '#d4af37' },
@@ -26,7 +26,7 @@ const AVAILABLE_COLORS: Array<{ name: string; hex: string; border?: boolean }> =
 ];
 
 const AVAILABLE_LIPATAN = ['Lipat 2', 'Lipat 3', 'Single Card'];
-const AVAILABLE_ORIENTASI = ['Potrait', 'Landscape', 'Persegi'];
+const AVAILABLE_ORIENTASI = ['Potrait', 'Landscape', 'Square'];
 const AVAILABLE_AMPLOP = ['Dengan Amplop', 'Tanpa Amplop'];
 const AVAILABLE_SEGMENTS: PriceSegment[] = ['Super Hemat', 'Ekonomis', 'Menengah', 'Premium'];
 
@@ -80,51 +80,69 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
     onUpdateFilters({ selectedAmplop: updated });
   };
 
+  const totalActive =
+    filters.selectedSegments.length +
+    filters.selectedColors.length +
+    filters.selectedLipatan.length +
+    filters.selectedOrientasi.length +
+    filters.selectedAmplop.length;
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-stone-900/40 backdrop-blur-xs transition-opacity duration-300"
+        className="absolute inset-0 bg-stone-900/50 backdrop-blur-xs transition-opacity duration-300"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer Container (Right Slide-over) */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-stone-200">
+      {/* Drawer Container (Full-width on mobile, Slide-over on Desktop) */}
+      <div className="fixed inset-y-0 right-0 max-w-full flex w-full sm:w-auto">
+        <div className="w-full sm:w-screen sm:max-w-md bg-white shadow-2xl flex flex-col border-l border-stone-200">
           {/* Header */}
-          <div className="px-6 py-4 bg-[#faf8f5] border-b border-stone-200 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-[#faf8f5] border-b border-stone-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-amber-100/70 text-amber-800 rounded-lg">
+              <div className="p-2 bg-amber-100/80 text-amber-900 rounded-lg">
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-serif text-base font-bold text-stone-900">
-                  Filter Lanjutan
+                <h3 className="font-serif font-bold text-base text-stone-900">
+                  Filter Spesifikasi
                 </h3>
                 <p className="text-[11px] text-stone-500">
-                  Sesuaikan preferensi spesifikasi undangan
+                  Persempit pilihan katalog undangan
                 </p>
               </div>
             </div>
+
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
-              aria-label="Tutup panel filter"
+              className="min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer touch-manipulation"
+              aria-label="Tutup filter"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Scrollable Filter Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          {/* Body Options Scrollable Area */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
             {/* 1. Kategori Segmen Harga */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2.5 flex items-center justify-between">
-                <span>Kategori Segmen Harga</span>
-                <span className="text-[10px] text-stone-500 font-normal">Tingkat Kemewahan</span>
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Kategori Segmen
+                </h4>
+                {filters.selectedSegments.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateFilters({ selectedSegments: [] })}
+                    className="text-[11px] text-amber-700 hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {AVAILABLE_SEGMENTS.map((seg) => {
                   const isChecked = filters.selectedSegments.includes(seg);
@@ -134,9 +152,9 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                       key={seg}
                       type="button"
                       onClick={() => toggleSegment(seg)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold border transition-all text-left ${
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs border text-left transition-all min-h-[44px] touch-manipulation cursor-pointer ${
                         isChecked
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-900 font-bold'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold'
                           : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
                       }`}
                     >
@@ -148,7 +166,7 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                         >
                           {isChecked && <Check className="w-3 h-3 stroke-3" />}
                         </div>
-                        <span>{seg}</span>
+                        <span className="text-[11px] font-semibold">{seg}</span>
                       </div>
                       <span className="text-[10px] text-stone-400 font-mono">({count})</span>
                     </button>
@@ -157,15 +175,23 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
               </div>
             </div>
 
-            {/* 2. Warna Dominan Swatches */}
+            {/* 2. Warna Dominan */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2.5 flex items-center justify-between">
-                <span>Warna Dominan</span>
-                <span className="text-[10px] text-stone-500 font-normal">
-                  {filters.selectedColors.length > 0 ? `${filters.selectedColors.length} dipilih` : 'Semua'}
-                </span>
-              </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Warna Dominan
+                </h4>
+                {filters.selectedColors.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateFilters({ selectedColors: [] })}
+                    className="text-[11px] text-amber-700 hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 {AVAILABLE_COLORS.map((col) => {
                   const isChecked = filters.selectedColors.includes(col.name);
                   const count = stats.countsByColor[col.name] || 0;
@@ -174,18 +200,22 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                       key={col.name}
                       type="button"
                       onClick={() => toggleColor(col.name)}
-                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs border transition-all text-left ${
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs border text-left transition-all min-h-[44px] touch-manipulation cursor-pointer ${
                         isChecked
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-900 font-bold'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold'
                           : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
                       }`}
                     >
-                      <span
-                        className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs ${col.border ? 'border border-stone-300' : ''}`}
-                        style={{ backgroundColor: col.hex }}
-                      />
-                      <span className="truncate flex-1 text-[11px]">{col.name}</span>
-                      {count > 0 && <span className="text-[10px] text-stone-400 font-mono">({count})</span>}
+                      <div className="flex items-center gap-2 truncate">
+                        <span
+                          className={`w-4 h-4 rounded-full shrink-0 shadow-2xs ${
+                            col.border ? 'border border-stone-300' : ''
+                          }`}
+                          style={{ backgroundColor: col.hex }}
+                        />
+                        <span className="text-[11px] truncate">{col.name}</span>
+                      </div>
+                      <span className="text-[10px] text-stone-400 font-mono shrink-0">({count})</span>
                     </button>
                   );
                 })}
@@ -194,10 +224,21 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
 
             {/* 3. Model Lipatan */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2.5">
-                Model Lipatan
-              </h4>
-              <div className="space-y-1.5">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Model Lipatan
+                </h4>
+                {filters.selectedLipatan.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateFilters({ selectedLipatan: [] })}
+                    className="text-[11px] text-amber-700 hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
                 {AVAILABLE_LIPATAN.map((lip) => {
                   const isChecked = filters.selectedLipatan.includes(lip);
                   const count = stats.countsByLipatan[lip] || 0;
@@ -206,23 +247,14 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                       key={lip}
                       type="button"
                       onClick={() => toggleLipatan(lip)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl text-xs border text-center transition-all min-h-[48px] touch-manipulation cursor-pointer ${
                         isChecked
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-900 font-bold'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold'
                           : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={`w-4 h-4 rounded-sm border flex items-center justify-center ${
-                            isChecked ? 'bg-amber-600 border-amber-600 text-white' : 'border-stone-300'
-                          }`}
-                        >
-                          {isChecked && <Check className="w-3 h-3 stroke-3" />}
-                        </div>
-                        <span>{lip}</span>
-                      </div>
-                      <span className="text-[10px] text-stone-400 font-mono">({count} model)</span>
+                      <span className="font-semibold text-[11px]">{lip}</span>
+                      <span className="text-[10px] text-stone-400 font-mono">({count})</span>
                     </button>
                   );
                 })}
@@ -231,9 +263,20 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
 
             {/* 4. Orientasi Layout */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2.5">
-                Orientasi Layout
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Orientasi Layout
+                </h4>
+                {filters.selectedOrientasi.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateFilters({ selectedOrientasi: [] })}
+                    className="text-[11px] text-amber-700 hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {AVAILABLE_ORIENTASI.map((ori) => {
                   const isChecked = filters.selectedOrientasi.includes(ori);
@@ -243,14 +286,14 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                       key={ori}
                       type="button"
                       onClick={() => toggleOrientasi(ori)}
-                      className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs border text-center transition-all ${
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl text-xs border text-center transition-all min-h-[48px] touch-manipulation cursor-pointer ${
                         isChecked
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-900 font-bold'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold'
                           : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
                       }`}
                     >
-                      <span className="font-semibold">{ori}</span>
-                      <span className="text-[10px] text-stone-400 font-mono mt-0.5">({count})</span>
+                      <span className="font-semibold text-[11px]">{ori}</span>
+                      <span className="text-[10px] text-stone-400 font-mono">({count})</span>
                     </button>
                   );
                 })}
@@ -259,9 +302,20 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
 
             {/* 5. Kelengkapan Amplop */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2.5">
-                Kelengkapan Amplop
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                  Kelengkapan Amplop
+                </h4>
+                {filters.selectedAmplop.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateFilters({ selectedAmplop: [] })}
+                    className="text-[11px] text-amber-700 hover:underline"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {AVAILABLE_AMPLOP.map((amp) => {
                   const isChecked = filters.selectedAmplop.includes(amp);
@@ -271,9 +325,9 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
                       key={amp}
                       type="button"
                       onClick={() => toggleAmplop(amp)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs border text-left transition-all ${
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs border text-left transition-all min-h-[44px] touch-manipulation cursor-pointer ${
                         isChecked
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-900 font-bold'
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-950 font-bold'
                           : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
                       }`}
                     >
@@ -295,22 +349,24 @@ export const AdvancedFilterDrawer: React.FC<AdvancedFilterDrawerProps> = ({
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center gap-2">
+          {/* Footer Sticky Action Controls (>=46px touch targets, pb-safe) */}
+          <div className="p-4 bg-[#faf8f5] border-t border-stone-200 flex items-center gap-3 pb-safe">
             <button
               type="button"
               onClick={onResetFilters}
-              className="flex-1 py-2 px-3 rounded-lg border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-100 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              disabled={totalActive === 0}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 font-semibold text-xs hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-colors min-h-[46px] touch-manipulation cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filter</span>
+              <span>Reset Semua</span>
             </button>
+
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 px-3 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              className="flex-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors min-h-[46px] touch-manipulation cursor-pointer flex items-center justify-center"
             >
-              <span>Terapkan Filter ({stats.filteredCount})</span>
+              Terapkan Filter {totalActive > 0 && `(${totalActive})`}
             </button>
           </div>
         </div>
